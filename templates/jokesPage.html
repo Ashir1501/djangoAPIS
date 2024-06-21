@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<main>
+    <div class="container-fluid px-4">
+        <h1>Jokes</h1>
+        <form method="post" id="jokesForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+        </form>
+
+        <h3>Your Jokes List</h3>
+        <div class="container" id="data-list">
+            
+        </div>
+    </div>
+</main>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let nameFormElement = document.getElementById('jokesForm')
+        if (nameFormElement) {
+            // Add event listener to the form submission
+            document.getElementById("jokesForm").addEventListener("submit", function (event) {
+                // Check if the form is valid
+                if (!this.checkValidity()) {
+                    // If the form is not valid, prevent the default form submission
+                    event.preventDefault();
+                    // Trigger HTML5 form validation to display validation messages
+                    this.reportValidity();
+                } else {
+                    // If the form is valid, proceed with jquery submission
+                    event.preventDefault(); // Prevent default submission
+
+                    let count = $('#id_count').val();
+                    $.post("/api/jokes/", {
+                        'count': count,
+                    }, function (data, status) {
+                        const jokeContainer = document.getElementById('data-list');
+                        data.forEach(item => {
+                            const rowDiv = document.createElement('div');
+                            rowDiv.classList.add('row','my-2');
+
+                            const colDiv = document.createElement('div');
+                            colDiv.classList.add('col-12','bg-info','py-3');
+                            colDiv.style.textAlign = 'center';
+                            colDiv.textContent = `${item.joke}`;
+                            
+                            rowDiv.appendChild(colDiv);
+                            jokeContainer.appendChild(rowDiv);
+                        });
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
