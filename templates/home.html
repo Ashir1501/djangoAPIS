@@ -4,8 +4,12 @@
     <div class="container-fluid px-4">
         <h1>Greetings</h1>
         <form method="get" style="margin-top: 2%;" id="nameForm">
-            <label for="greeting">Name: </label>
-            <input id="greeting" name="name" pattern="^[A-za-z\s]+$" type="text" placeholder="Enter Your Name" required>
+            {% for field in form %}
+                <div>
+                    {{ field.label_tag }}
+                    {{ field }}
+                </div>
+            {% endfor %}
             <button type="submit" class="btn btn-primary btn-block">Submit</button>
         </form>
     </div>
@@ -20,13 +24,35 @@
 
                     event.preventDefault(); // Prevent default submission
 
-                    let name = $('#greeting').val();
-                    $.get("api/greet/"+name, function(data, status){
-                        Swal.fire({
-                            title: "Hello "+data.name,
-                            icon: 'success'
-                        });
+                    let name = $('#id_name').val();
+                    $.ajax({
+                        url:'/api/greet/',
+                        type:'GET',
+                        data:{
+                            name:name
+                        },
+                        success: function(data){
+                            $('.error').remove();
+                            Swal.fire({
+                                title: "Hello "+data.name,
+                                icon: 'success'
+                            });
+                        },
+                        error:function(xhr){
+                            $('.error').remove();
+                            if(xhr.responseJSON && xhr.responseJSON.errors){
+                            //handle and display errors
+                            let errors = xhr.responseJSON.errors;
+                            for(let field in errors){
+                                let fieldElement = $(`#id_${field}`);
+                                let errorDiv = $('<div class="error"></div>');
+                                errorDiv.html(errors[field].map(error => `<p style="color:red">${error}</p>`).join(''));
+                                fieldElement.parent().append(errorDiv);
+                            }
+                        }
+                        }
                     });
+
             });
         }
     });

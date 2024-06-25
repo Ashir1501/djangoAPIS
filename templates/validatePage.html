@@ -5,7 +5,12 @@
         <h1>Form validation</h1>
         <form method="post" id="validateForm">
             {% csrf_token %}
-            {{ form }}
+            {% for field in form %}
+                <div>
+                    {{ field.label_tag }}
+                    {{ field }}
+                </div>
+            {% endfor %}
             <button type="submit" class="btn btn-primary btn-block">Submit</button>
         </form>
     </div>
@@ -15,35 +20,49 @@
         let nameFormElement = document.getElementById('validateForm')
         if(nameFormElement){
             // Add event listener to the form submission
-            document.getElementById("validateForm").addEventListener("submit", function (event){
-                // defining regex pattern for name input field
-                const nameInputElement = document.getElementById('id_name');
-                nameInputElement.setAttribute('pattern', '^[A-Za-z\\s]+$');
-                // Check if the form is valid
-                if (!this.checkValidity()) {
-                    // If the form is not valid, prevent the default form submission
-                    event.preventDefault();
-                    // Trigger HTML5 form validation to display validation messages
-                    this.reportValidity();
-                }else{
-                    // If the form is valid, proceed with submission
-                    event.preventDefault(); // Prevent default submission
+            nameFormElement.addEventListener("submit", function (event){
+                event.preventDefault(); // Prevent default submission
 
-                    let name = $('#id_name').val();
-                    let age = $('#id_age').val();
-                    let salary = $('#id_salary').val();
-                    $.post("/api/validate/",{
-                        'name':name,
-                        'age':age,
-                        'salary':salary
-                    }, function(data, status){
-                        // sweetalert pop up
+                let name = $('#id_name').val();
+                let age = $('#id_age').val();
+                let salary = $('#id_salary').val();
+
+                $.ajax({
+                    url:"/api/validate/",
+                    type:"POST",
+                    data:{
+                        name:name,
+                        age:age,
+                        salary:salary,
+                        csrfmiddlewaretoken: document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    success: function(data){
+                        //clear previous errors
+                        $(".error").remove();
+
+                        //sweetalert pop up for successful submission
                         Swal.fire({
-                            title: data.name + " is " + data.age + " years old and earns " + data.salary + " every month",
+                            title:`${data.name} is ${data.age} years old and earns ${data.salary} every month`,
                             icon: 'success'
                         });
-                    });
-                }
+                    },
+                    error: function(xhr){
+                        //clear previous errors
+                        $('.error').remove();
+
+                        if(xhr.responseJSON && xhr.responseJSON.errors){
+                            //handle and display errors
+                            let errors = xhr.responseJSON.errors;
+                            for(let field in errors){
+                                let fieldElement = $(`#id_${field}`);
+                                let errorDiv = $('<div class="error"></div>');
+                                errorDiv.html(errors[field].map(error => `<p style="color:red">${error}</p>`).join(''));
+                                fieldElement.parent().append(errorDiv);
+                            }
+                        }
+                    }
+                });
+                   
             });
         }
     });

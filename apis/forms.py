@@ -1,26 +1,69 @@
 from django import forms
-from decimal import Decimal
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator, DecimalValidator
 class ValidateForm(forms.Form):
     name = forms.CharField(
         widget=forms.TextInput(attrs={
-            'placeholder': 'Enter your name'
-        })
+            'placeholder': 'Enter your name',
+            'class':'form-control'
+        }),
+        validators=[
+            RegexValidator(regex=r"^[A-Za-z\s]+$",
+                message="Name should contain only alphabets",
+                code="invalid name"
+            )
+        ]
     )
     age = forms.IntegerField(
-        min_value=1,
         widget=forms.NumberInput(attrs={
-            'placeholder': 'Enter your age'
-        })
+            'placeholder': 'Enter your age',
+            'class':'form-control'
+        }),
+        validators=[
+            MaxValueValidator(
+                120,
+                message="Age cannot be greater than 120"
+            ),
+            MinValueValidator(
+                18,
+                message="Age cannot be less than 18"
+            )
+        ]
     )
     salary = forms.DecimalField(
         min_value=1,
         max_digits=10,
         decimal_places=2,
         widget=forms.NumberInput(attrs={
-            'placeholder': 'Enter your salary'
-        })
+            'placeholder': 'Enter your salary',
+            'class':'form-control'
+        }),
+        validators=[
+            DecimalValidator(10,2),
+            MinValueValidator(1000)
+        ]
     )
 
 
 class JokesCountForm(forms.Form):
-    count = forms.IntegerField(max_value=100, min_value=1)
+    count = forms.IntegerField(
+        min_value=1,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'placeholder': 'Enter limit of jokes',
+            'class':'form-control'
+        }),
+    )
+
+class GreetingsForm(forms.Form):
+    name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder':'Enter your Name',
+            'class':'form-control'
+        }),
+        validators=[
+            RegexValidator(regex=r"^[A-Za-z\s]+$",
+                message="Name should contain only alphabets",
+                code="invalid name"
+            )
+        ]
+    )

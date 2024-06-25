@@ -20,36 +20,44 @@
         let nameFormElement = document.getElementById('jokesForm')
         if (nameFormElement) {
             // Add event listener to the form submission
-            document.getElementById("jokesForm").addEventListener("submit", function (event) {
-                // Check if the form is valid
-                if (!this.checkValidity()) {
-                    // If the form is not valid, prevent the default form submission
-                    event.preventDefault();
-                    // Trigger HTML5 form validation to display validation messages
-                    this.reportValidity();
-                } else {
-                    // If the form is valid, proceed with jquery submission
+            nameFormElement.addEventListener("submit", function (event) {
                     event.preventDefault(); // Prevent default submission
 
                     let count = $('#id_count').val();
-                    $.post("/api/jokes/", {
-                        'count': count,
-                    }, function (data, status) {
-                        const jokeContainer = document.getElementById('data-list');
-                        data.forEach(item => {
-                            const rowDiv = document.createElement('div');
-                            rowDiv.classList.add('row','my-2');
+                    $.ajax({
+                        url:"/api/jokes/",
+                        type:"POST",
+                        data:{
+                            count:count,
+                            csrfmiddlewaretoken: document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        success: function(data){
+                            const jokeContainer = document.getElementById('data-list');
+                            jokeContainer.innerHTML = "";
+                            data.forEach(item => {
+                                const rowDiv = document.createElement('div');
+                                rowDiv.classList.add('row','my-2');
+        
+                                const colDiv = document.createElement('div');
+                                colDiv.classList.add('col-12','bg-info','py-3');
+                                colDiv.style.textAlign = 'center';
+                                colDiv.textContent = `${item.joke}`;
+                                
+                                rowDiv.appendChild(colDiv);
+                                jokeContainer.appendChild(rowDiv);
+                            });
+                        },
+                        error: function(xhr){
+                            if(xhr.responseJSON && xhr.responseJSON.errors){
+                                Swal.fire({
+                                    title:'Error',
+                                    text: xhr.responseJSON.errors,
+                                    icon: 'error'
+                                });
 
-                            const colDiv = document.createElement('div');
-                            colDiv.classList.add('col-12','bg-info','py-3');
-                            colDiv.style.textAlign = 'center';
-                            colDiv.textContent = `${item.joke}`;
-                            
-                            rowDiv.appendChild(colDiv);
-                            jokeContainer.appendChild(rowDiv);
-                        });
+                            }
+                        }
                     });
-                }
             });
         }
     });
