@@ -1,2 +1,4 @@
 apienv
 db.sqlite3
+apis/__pycache__
+apiMain/__pycache__
