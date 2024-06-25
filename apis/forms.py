@@ -30,9 +30,6 @@ class ValidateForm(forms.Form):
         ]
     )
     salary = forms.DecimalField(
-        min_value=1,
-        max_digits=10,
-        decimal_places=2,
         widget=forms.NumberInput(attrs={
             'placeholder': 'Enter your salary',
             'class':'form-control'
